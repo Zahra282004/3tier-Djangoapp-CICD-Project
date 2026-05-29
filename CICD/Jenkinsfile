@@ -1,0 +1,46 @@
+@Library("Shared_lib") _
+
+pipeline{
+  agent any
+  
+  environment {
+        SCANNER_HOME = tool 'Sonar'
+    }
+  
+  parameters{
+    string(name: 'FRONTEND_IMAGE_TAG', defaultValue: '', description: 'Docker Image for frontend')
+    string(name: 'BACKEND_IMAGE_TAG', defaultValue: '', description: 'Docker Image for backend')
+    }
+  
+  stages{
+    
+    stage("Git Checkout"){
+      git url:"https://github.com/DevMadhup/Wanderlust-Mega-Project.git",branch:"main
+    }
+    
+    stage("Trivy filesystem check"){
+      $ trivy fs .
+    }
+    
+    stage("Owasp dependency checks"){
+      //Scans requirements.txt/package.json 
+            dependencyCheck odcInstallation: 'OWASP', additionalArguments: '--scan ./'
+            
+      // Report generation
+            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+    }
+    
+    stage("Sonarqube code analysis"){
+       withSonarQubeEnv("Sonar-Server"){
+       sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName="wanderlust-app" -Dsonar.projectKey="wanderlust -X"
+  }
+    }
+    
+    stage("Docker image create"){
+      
+    }
+    stage("Push to Dockerhub"){
+      
+    }
+  }
+}
