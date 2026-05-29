@@ -56,23 +56,23 @@ pipeline{
     stage("Docker: Build Images"){
             steps{
               dir('backend'){
-                 sh "docker build -t zahramurtaza/wanderlust-backend:${BACKEND_IMAGE_TAG} ."
+                 sh "docker build -t zahramurtaza/wanderlust-backend-beta:${BACKEND_IMAGE_TAG} ."
               }
               dir('frontend'){
-                 sh "docker build -t zahramurtaza/wanderlust-frontend:${FRONTEND_IMAGE_TAG} ."
+                 sh "docker build -t zahramurtaza/wanderlust-frontend-beta:${FRONTEND_IMAGE_TAG} ."
               }
     }
     }
 
     stage("Scan images with trivy){
           steps{
-            trivy image "zahramurtaza/wanderlust-backend:${BACKEND_IMAGE_TAG}"
-            trivy image "zahramurtaza/wanderlust-backend:${BACKEND_IMAGE_TAG}"
+            trivy image "zahramurtaza/wanderlust-backend-beta:${BACKEND_IMAGE_TAG}"
+            trivy image "zahramurtaza/wanderlust-frontend-beta:${FRONTEND_IMAGE_TAG}"
           }
     }
     stage("Push to Dockerhub"){
-       sh "docker push zahramurtaza/wanderlust-backend:${BACKEND_IMAGE_TAG} "
-       sh "docker push zahramurtaza/wanderlust-frontend:${FRONTEND_IMAGE_TAG} "
+       sh "docker push zahramurtaza/wanderlust-backend-beta:${BACKEND_IMAGE_TAG} "
+       sh "docker push zahramurtaza/wanderlust-frontend-beta:${FRONTEND_IMAGE_TAG} "
     }
     }
           
@@ -82,8 +82,8 @@ pipeline{
             archiveArtifacts artifacts: '*.xml', followSymlinks: false
           //start cd pipeline build and provide parameters
             build job: "Wanderlust-CD", parameters: [
-                string(name: 'FRONTEND_DOCKER_TAG', value: "${params.FRONTEND_DOCKER_TAG}"),
-                string(name: 'BACKEND_DOCKER_TAG', value: "${params.BACKEND_DOCKER_TAG}")
+                string(name: 'FRONTEND_IMAGE_TAG', value: "${params.FRONTEND_IMAGE_TAG}"),
+                string(name: 'BACKEND_IMAGE_TAG', value: "${params.BACKEND_IMAGE_TAG}")
             ]
         }
     }
