@@ -29,7 +29,7 @@ curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/d
 sudo mv /tmp/eksctl /usr/local/bin
 eksctl version
 ```
-- Create EKS Cluster (just create control plan not whole node group)
+- Create EKS Cluster (just create control plane not whole node group)
 ```
 eksctl create cluster --name=wanderlust \
                     --region=us-east-2 \
@@ -44,7 +44,7 @@ eksctl utils associate-iam-oidc-provider \
   --cluster wanderlust \
   --approve
 ```
-- Create Nodegroup (Master machine)
+- Create Nodegroup (creates worker instances and conects with control node)
 ```
 eksctl create nodegroup --cluster=wanderlust \
                      --region=us-east-2 \
@@ -110,12 +110,16 @@ sudo chmod +x /usr/local/bin/argocd
 ```
 kubectl get svc -n argocd
 ```
-- Change argocd server's service from ClusterIP to NodePort
+- Change argocd server's service (patch) from ClusterIP to NodePort(providing one of the worker nodes public ip)
 ```
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort"}}'
 ```
-- Check the port where ArgoCD server is running and expose it on one of the worker nodes
+- Check the port where ArgoCD server is running and add it as inbound rule for the all worker nodes inside that cluster
+```
+<public-ip-worker>:<port>
+```
 - Fetch the initial password of argocd server
 ```
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
 ```
+* Note:the argocd is installed through master node in the cluster and runs on worker nodes on a specific node provided after patching it to 'NodePort'
